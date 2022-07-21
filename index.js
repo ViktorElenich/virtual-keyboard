@@ -128,6 +128,7 @@ const KEYBOARD = {
           btnKey.textContent = 'Caps Lock';
           btnKey.id = 'caps';
           btnKey.addEventListener('click', () => {
+            this.toggleCapsLock();
             btnKey.classList.toggle('keyboard__key-active', this.properties.capsLock);
           });
           break;
@@ -279,6 +280,20 @@ const KEYBOARD = {
       }
     }
     this.properties.shift = false;
+  },
+  toggleCapsLock() {
+    this.properties.capsLock = !this.properties.capsLock;
+    localStorage.capsLock = this.properties.capsLock;
+
+    this.elements.keys.forEach((key) => {
+      const res = key;
+      if (key.textContent.length === 1) {
+        res.textContent = this.properties.capsLock
+          ? key.textContent.toUpperCase()
+          : key.textContent.toLowerCase();
+      }
+      return res;
+    });
   },
 };
 
