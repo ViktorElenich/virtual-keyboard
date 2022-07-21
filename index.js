@@ -1,10 +1,11 @@
 const body = document.querySelector('body');
-const textAreaEl = document.createElement('textarea');
-body.appendChild(textAreaEl);
-
-const textArea = document.querySelector('textarea');
-textArea.classList.add('text__keyboard');
-textArea.setAttribute('placeholder', 'Enter your text...');
+const container = document.createElement('div');
+container.className = 'container';
+body.appendChild(container);
+container.appendChild(document.createElement('textarea'));
+const textarea = document.querySelector('textarea');
+textarea.classList.add('use__keyboard');
+textarea.setAttribute('placeholder', 'Type your text here...');
 
 const KEYBOARD = {
   elements: {
@@ -56,3 +57,28 @@ const KEYBOARD = {
     english: null,
   },
 };
+
+function init(obj) {
+  let {
+    main, keysContainer, info, keys,
+  } = obj.elements;
+  main = document.createElement('div');
+  keysContainer = document.createElement('div');
+
+  main.classList.add('keyboard');
+  keysContainer.classList.add('keyboard__keys');
+
+  keys = keysContainer.querySelectorAll('.keyboard__key');
+
+  main.appendChild(keysContainer);
+  container.appendChild(main);
+
+  info = container.appendChild(document.createElement('div'));
+  info.classList.add('info');
+  info.textContent = 'Keyboard works properly in Windows. Press Shift + Ctrl to change language.';
+  container.appendChild(info);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  init(KEYBOARD);
+});
