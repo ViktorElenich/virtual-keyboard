@@ -56,29 +56,187 @@ const KEYBOARD = {
     shift: false,
     english: null,
   },
+  init() {
+    this.elements.main = document.createElement('div');
+    this.elements.keysContainer = document.createElement('div');
+
+    this.elements.main.classList.add('keyboard');
+    this.elements.keysContainer.classList.add('keyboard__keys');
+    this.elements.keysContainer.appendChild(this.createKeys());
+
+    this.elements.keys = this.elements.keysContainer.querySelectorAll('.keyboard__key');
+
+    this.elements.main.appendChild(this.elements.keysContainer);
+    container.appendChild(this.elements.main);
+
+    this.elements.info = container.appendChild(document.createElement('div'));
+    this.elements.info.classList.add('info');
+    this.elements.info.textContent = 'Keyboard works properly in Windows. Press Shift + Ctrl to change language.';
+    container.appendChild(this.elements.info);
+  },
+  createKeys() {
+    const fragment = document.createDocumentFragment();
+    let keyArr = [];
+
+    // Load stored language
+    if (localStorage.english === 'false') {
+      this.properties.english = false;
+      keyArr = this.elements.layouts.ru;
+    } else {
+      this.properties.english = true;
+      keyArr = this.elements.layouts.en;
+    }
+
+    keyArr.forEach((key) => {
+      const btnKey = document.createElement('button');
+      const insertLineBreak = ['backspace', '\\', 'enter', 'shift'].indexOf(key) !== -1;
+
+      btnKey.setAttribute('type', 'button');
+      btnKey.classList.add('keyboard__key');
+      btnKey.addEventListener('click', () => {
+        textarea.focus();
+      });
+
+      switch (key) {
+        case 'backspace':
+          btnKey.classList.add('keyboard__key-wide');
+          btnKey.textContent = 'Backspace';
+          btnKey.addEventListener('click', () => {
+            if (textarea.selectionStart === 0
+              && textarea.selectionEnd === textarea.selectionStart) {
+              return;
+            }
+            if (textarea.selectionEnd === textarea.selectionStart) {
+              textarea.setRangeText('', textarea.selectionStart - 1, textarea.selectionEnd, 'end');
+            } else {
+              textarea.setRangeText('', textarea.selectionStart, textarea.selectionEnd, 'end');
+            }
+          });
+          break;
+
+        case 'tab':
+          btnKey.classList.add('keyboard__key-wide');
+          btnKey.textContent = 'Tab';
+          btnKey.addEventListener('click', (event) => {
+            event.preventDefault();
+            textarea.setRangeText('\t', textarea.selectionStart, textarea.selectionEnd, 'end');
+          });
+          break;
+
+        case 'caps':
+          btnKey.classList.add('keyboard__key-wide', 'keyboard__key-caps');
+          btnKey.textContent = 'Caps Lock';
+          btnKey.id = 'caps';
+          btnKey.addEventListener('click', () => {
+            btnKey.classList.toggle('keyboard__key-active', this.properties.capsLock);
+          });
+          break;
+
+        case 'lshift':
+          btnKey.classList.add('keyboard__key-wide');
+          btnKey.textContent = 'Shift';
+          btnKey.id = 'shiftLeft';
+          break;
+
+        case 'shift':
+          btnKey.classList.add('keyboard__key-wide');
+          btnKey.textContent = 'Shift';
+          btnKey.id = 'shiftRight';
+          break;
+
+        case 'ctrl':
+          btnKey.textContent = 'Ctrl';
+          btnKey.id = 'controlRight';
+          break;
+
+        case 'lctrl':
+          btnKey.textContent = 'Ctrl';
+          btnKey.id = 'controlLeft';
+          break;
+
+        case 'lang':
+          btnKey.classList.add('keyboard__key-lang');
+          btnKey.textContent = this.properties.english ? 'EN' : 'RU';
+          btnKey.id = 'lang';
+          break;
+
+        case 'lalt':
+          btnKey.textContent = 'Alt';
+          btnKey.id = 'altLeft';
+          break;
+
+        case 'alt':
+          btnKey.textContent = 'Alt';
+          btnKey.id = 'altRight';
+          break;
+
+        case 'enter':
+          btnKey.classList.add('keyboard__key-wide');
+          btnKey.textContent = 'Enter';
+          btnKey.addEventListener('click', () => {
+            textarea.setRangeText('\n', textarea.selectionStart, textarea.selectionEnd, 'end');
+          });
+          break;
+
+        case ' ':
+          btnKey.classList.add('keyboard__key-space');
+          btnKey.textContent = ' ';
+          btnKey.id = 'space';
+          btnKey.addEventListener('click', () => {
+            textarea.setRangeText(' ', textarea.selectionStart, textarea.selectionEnd, 'end');
+          });
+          break;
+
+        case 'darr':
+          btnKey.textContent = '↓';
+          btnKey.id = 'arrowDown';
+          btnKey.addEventListener('click', () => {
+            textarea.setRangeText('↓', textarea.selectionStart, textarea.selectionEnd, 'end');
+          });
+          break;
+
+        case 'uarr':
+          btnKey.textContent = '↑';
+          btnKey.id = 'arrowUp';
+          btnKey.addEventListener('click', () => {
+            textarea.setRangeText('↑', textarea.selectionStart, textarea.selectionEnd, 'end');
+          });
+          break;
+
+        case 'larr':
+          btnKey.textContent = '←';
+          btnKey.id = 'leftArrow';
+          btnKey.addEventListener('click', () => {
+            textarea.setRangeText('←', textarea.selectionStart, textarea.selectionEnd, 'end');
+          });
+          break;
+
+        case 'rarr':
+          btnKey.textContent = '→';
+          btnKey.id = 'rightArrow';
+          btnKey.addEventListener('click', () => {
+            textarea.setRangeText('→', textarea.selectionStart, textarea.selectionEnd, 'end');
+          });
+          break;
+
+        default:
+          btnKey.textContent = key.toLowerCase();
+          btnKey.addEventListener('click', () => {
+            textarea.setRangeText(btnKey.textContent, textarea.selectionStart, textarea.selectionEnd, 'end');
+          });
+          break;
+      }
+
+      fragment.appendChild(btnKey);
+      if (insertLineBreak) {
+        fragment.appendChild(document.createElement('br'));
+      }
+    });
+    return fragment;
+  },
 };
 
-function init(obj) {
-  let {
-    main, keysContainer, info, keys,
-  } = obj.elements;
-  main = document.createElement('div');
-  keysContainer = document.createElement('div');
-
-  main.classList.add('keyboard');
-  keysContainer.classList.add('keyboard__keys');
-
-  keys = keysContainer.querySelectorAll('.keyboard__key');
-
-  main.appendChild(keysContainer);
-  container.appendChild(main);
-
-  info = container.appendChild(document.createElement('div'));
-  info.classList.add('info');
-  info.textContent = 'Keyboard works properly in Windows. Press Shift + Ctrl to change language.';
-  container.appendChild(info);
-}
-
 window.addEventListener('DOMContentLoaded', () => {
-  init(KEYBOARD);
+  KEYBOARD.init();
+  textarea.focus();
 });
