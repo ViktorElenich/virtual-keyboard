@@ -171,6 +171,9 @@ const KEYBOARD = {
           btnKey.classList.add('keyboard__key-lang');
           btnKey.textContent = this.properties.english ? 'EN' : 'RU';
           btnKey.id = 'lang';
+          btnKey.addEventListener('mousedown', () => {
+            this.switchLang();
+          });
           break;
 
         case 'lalt':
@@ -294,6 +297,43 @@ const KEYBOARD = {
       }
       return res;
     });
+  },
+  switchLang() {
+    const {
+      ru, ruShifted, en, enShifted,
+    } = this.elements.layouts;
+    const { capsLock, shift, english } = this.properties;
+    const { keys } = this.elements;
+    const btnSwitchLang = document.getElementById('lang');
+
+    for (let i = 0; i < keys.length; i++) {
+      const btnIsSymbol = en[i].length === 1;
+      if (btnIsSymbol) {
+        if (english) {
+          if (capsLock) {
+            keys[i].textContent = shift ? ruShifted[i] : ru[i].toUpperCase();
+          } else {
+            keys[i].textContent = shift ? ruShifted[i] : ru[i];
+          }
+        }
+        if (!english) {
+          if (capsLock) {
+            keys[i].textContent = shift ? enShifted[i] : en[i].toUpperCase();
+          } else {
+            keys[i].textContent = shift ? enShifted[i] : en[i];
+          }
+        }
+      }
+    }
+
+    if (btnSwitchLang.textContent === 'EN') {
+      btnSwitchLang.textContent = 'RU';
+    } else {
+      btnSwitchLang.textContent = 'EN';
+    }
+
+    localStorage.setItem('lang', !this.properties.english);
+    this.properties.english = !this.properties.english;
   },
 };
 
