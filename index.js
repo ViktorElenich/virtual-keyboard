@@ -136,12 +136,24 @@ const KEYBOARD = {
           btnKey.classList.add('keyboard__key-wide');
           btnKey.textContent = 'Shift';
           btnKey.id = 'shiftLeft';
+          btnKey.addEventListener('mousedown', () => {
+            this.shiftPress();
+          });
+          btnKey.addEventListener('mouseup', () => {
+            this.shiftUnpressed();
+          });
           break;
 
         case 'shift':
           btnKey.classList.add('keyboard__key-wide');
           btnKey.textContent = 'Shift';
           btnKey.id = 'shiftRight';
+          btnKey.addEventListener('mousedown', () => {
+            this.shiftPress();
+          });
+          btnKey.addEventListener('mouseup', () => {
+            this.shiftUnpressed();
+          });
           break;
 
         case 'ctrl':
@@ -233,6 +245,40 @@ const KEYBOARD = {
       }
     });
     return fragment;
+  },
+  shiftPress() {
+    const { en, ruShifted, enShifted } = this.elements.layouts;
+    const { keys } = this.elements;
+    const { english } = this.properties;
+
+    for (let i = 0; i < keys.length; i++) {
+      const btnIsSymbol = en[i].length === 1;
+      if (btnIsSymbol) {
+        if (english) {
+          keys[i].textContent = enShifted[i];
+        } else {
+          keys[i].textContent = ruShifted[i];
+        }
+      }
+    }
+    this.properties.shift = true;
+  },
+  shiftUnpressed() {
+    const { ru, en } = this.elements.layouts;
+    const { keys } = this.elements;
+    const { capsLock, english } = this.properties;
+
+    for (let i = 0; i < keys.length; i++) {
+      const btnIsSymbol = en[i].length === 1;
+      if (btnIsSymbol) {
+        if (english) {
+          keys[i].textContent = capsLock ? en[i].toUpperCase() : en[i];
+        } else {
+          keys[i].textContent = capsLock ? ru[i].toUpperCase() : ru[i];
+        }
+      }
+    }
+    this.properties.shift = false;
   },
 };
 
