@@ -10,7 +10,6 @@ textarea.setAttribute('placeholder', 'Type your text here...');
 const KEYBOARD = {
   elements: {
     info: '',
-    main: null,
     keysContainer: null,
     keys: [],
     layouts: {
@@ -57,22 +56,26 @@ const KEYBOARD = {
     english: null,
   },
   init() {
-    this.elements.main = document.createElement('div');
     this.elements.keysContainer = document.createElement('div');
 
-    this.elements.main.classList.add('keyboard');
     this.elements.keysContainer.classList.add('keyboard__keys');
     this.elements.keysContainer.appendChild(this.createKeys());
 
     this.elements.keys = this.elements.keysContainer.querySelectorAll('.keyboard__key');
 
-    this.elements.main.appendChild(this.elements.keysContainer);
-    container.appendChild(this.elements.main);
+    container.appendChild(this.elements.keysContainer);
 
     this.elements.info = container.appendChild(document.createElement('div'));
     this.elements.info.classList.add('info');
     this.elements.info.textContent = 'Keyboard works properly in Windows. Press Shift + Ctrl to change language.';
     container.appendChild(this.elements.info);
+
+    if (localStorage.capsLock === 'true') {
+      this.toggleCapsLock();
+      document.getElementById('caps').classList.toggle('keyboard__key-active', this.properties.capsLock);
+    }
+    this.switchLangShiftCtrl();
+    this.physicalInput();
   },
   createKeys() {
     const fragment = document.createDocumentFragment();
@@ -99,7 +102,7 @@ const KEYBOARD = {
 
       switch (key) {
         case 'backspace':
-          btnKey.classList.add('keyboard__key-wide');
+          btnKey.classList.add('keyboard__key-wide', 'keyboard__key-backspace');
           btnKey.textContent = 'Backspace';
           btnKey.addEventListener('click', () => {
             if (textarea.selectionStart === 0
@@ -125,7 +128,7 @@ const KEYBOARD = {
 
         case 'caps':
           btnKey.classList.add('keyboard__key-wide', 'keyboard__key-caps');
-          btnKey.textContent = 'Caps Lock';
+          btnKey.textContent = 'CapsLock';
           btnKey.id = 'caps';
           btnKey.addEventListener('click', () => {
             this.toggleCapsLock();
@@ -134,7 +137,7 @@ const KEYBOARD = {
           break;
 
         case 'lshift':
-          btnKey.classList.add('keyboard__key-wide');
+          btnKey.classList.add('keyboard__key-wide', 'keyboard__key-shift');
           btnKey.textContent = 'Shift';
           btnKey.id = 'shiftLeft';
           btnKey.addEventListener('mousedown', () => {
@@ -146,7 +149,7 @@ const KEYBOARD = {
           break;
 
         case 'shift':
-          btnKey.classList.add('keyboard__key-wide');
+          btnKey.classList.add('keyboard__key-wide', 'keyboard__key-shift', 'keyboard__key-shift_right');
           btnKey.textContent = 'Shift';
           btnKey.id = 'shiftRight';
           btnKey.addEventListener('mousedown', () => {
@@ -266,6 +269,7 @@ const KEYBOARD = {
       }
     }
     this.properties.shift = true;
+    this.physicalInput();
   },
   shiftUnpressed() {
     const { ru, en } = this.elements.layouts;
@@ -283,6 +287,7 @@ const KEYBOARD = {
       }
     }
     this.properties.shift = false;
+    this.physicalInput();
   },
   toggleCapsLock() {
     this.properties.capsLock = !this.properties.capsLock;
@@ -297,6 +302,7 @@ const KEYBOARD = {
       }
       return res;
     });
+    this.physicalInput();
   },
   switchLang() {
     const {
@@ -334,6 +340,124 @@ const KEYBOARD = {
 
     localStorage.setItem('lang', !this.properties.english);
     this.properties.english = !this.properties.english;
+
+    this.physicalInput();
+  },
+  switchLangShiftCtrl() {
+    let counter = 0;
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Shift' && (counter === 5 || counter === 0)) {
+        counter += 3;
+      }
+      if (event.key === 'Control' && (counter === 3 || counter === 0)) {
+        counter += 5;
+      }
+      if (counter === 8) {
+        this.switchLang();
+      }
+    });
+    document.addEventListener('keyup', (event) => {
+      if (event.key === 'Shift' && (counter === 3 || counter === 8)) {
+        counter -= 3;
+      }
+      if (event.key === 'Control' && (counter === 5 || counter === 8)) {
+        counter -= 5;
+      }
+    });
+  },
+  physicalInput() {
+    const { whichCodes } = this.elements.layouts;
+    const { capsLock, shift } = this.properties;
+    const keyArr = [];
+
+    KEYBOARD.elements.keys.forEach((key) => {
+      keyArr.push(key.textContent);
+    });
+    document.onkeydown = (event) => {
+      const code = whichCodes.indexOf(event.which);
+      const char = code > -1 ? keyArr[code].toLowerCase() : event.key;
+      let counter = -1;
+
+      document.querySelectorAll('.keyboard__key').forEach((key) => {
+        counter++;
+        if (key.innerHTML === event.code || event.code === key.id || code === counter) {
+          key.classList.add('red');
+        }
+      });
+
+      switch (event.key) {
+        case 'Enter':
+          break;
+
+        case 'Backspace':
+          break;
+
+        case 'CapsLock':
+          document.getElementById('caps').classList.toggle('keyboard__key-active', !KEYBOARD.properties.capsLock);
+          KEYBOARD.toggleCapsLock();
+          break;
+
+        case 'Shift':
+          if (KEYBOARD.properties.ctrl === true) {
+            KEYBOARD.switchLang();
+          }
+          KEYBOARD.shiftPress();
+          break;
+
+        case 'Tab':
+          event.preventDefault();
+          textarea.setRangeText('\t', textarea.selectionStart, textarea.selectionEnd, 'end');
+          break;
+
+        case 'arrowUp':
+          event.preventDefault();
+          textarea.setRangeText('↑', textarea.selectionStart, textarea.selectionEnd, 'end');
+          break;
+
+        case 'arrowDown':
+          event.preventDefault();
+          textarea.setRangeText('↓', textarea.selectionStart, textarea.selectionEnd, 'end');
+          break;
+
+        case 'rightArrow':
+          event.preventDefault();
+          textarea.setRangeText('→', textarea.selectionStart, textarea.selectionEnd, 'end');
+          break;
+
+        case 'leftArrow':
+          event.preventDefault();
+          textarea.setRangeText('←', textarea.selectionStart, textarea.selectionEnd, 'end');
+          break;
+
+        default:
+          event.preventDefault();
+          if (event.key.length === 1) {
+            switch (capsLock || shift) {
+              case true:
+                textarea.setRangeText(char.toUpperCase(), textarea.selectionStart, textarea.selectionEnd, 'end');
+                break;
+
+              default:
+                textarea.setRangeText(char, textarea.selectionStart, textarea.selectionEnd, 'end');
+                break;
+            }
+          }
+          break;
+      }
+    };
+    document.onkeyup = (event) => {
+      const code = whichCodes.indexOf(event.which);
+      let counter = -1;
+      document.querySelectorAll('.keyboard__key').forEach((key) => {
+        counter++;
+        if (key.innerHTML === event.code || event.code === key.id || code === counter) {
+          key.classList.remove('red');
+        }
+        if (event.key === 'Shift') {
+          KEYBOARD.shiftUnpressed();
+        }
+      });
+    };
   },
 };
 
